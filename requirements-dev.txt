@@ -1,0 +1,7 @@
+flake8
+pytest
+pytest-asyncio
+pytest-qt
+tox
+tox-wheel
+wheel
