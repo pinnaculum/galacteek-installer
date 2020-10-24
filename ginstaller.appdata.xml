@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>org.gitlab.galacteek</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0+</project_license>
+    <name>Galacteek installer</name>
+
+    <summary>Distributed web browser (auto-installer)</summary>
+    <categories>
+        <category>Network</category>
+    </categories>
+    <keywords>
+        <keyword>IPFS</keyword>
+        <keyword>Browser</keyword>
+        <keyword>P2P</keyword>
+    </keywords>
+
+    <description>
+        <p>
+            galacteek is a multi-platform browser for the distributed web.
+
+            It contains tools to access and publish content over IPFS, and allows you to make search queries with the ipfs-search.com search engine. It can interact with the Ethereum Name Service (ENS) and has support for dweb Atom feeds.
+        </p>
+        <p>
+            Learn more about IPFS at ipfs.io
+        </p>
+    </description>
+
+    <launchable type="desktop-id">ginstaller.desktop</launchable>
+
+    <screenshots>
+        <screenshot type="default">
+            <caption>Browsing the Wikipedia IPFS mirror</caption>
+            <image>https://github.com/pinnaculum/galacteek/raw/master/screenshots/browse-wikipedia.png</image>
+        </screenshot>
+    </screenshots>
+
+    <url type="homepage">https://github.com/pinnaculum/galacteek</url>
+    <url type="donation">https://github.com/sponsors/pinnaculum</url>
+
+    <provides>
+        <binary>ginstaller</binary>
+    </provides>
+
+    <releases>
+        <release version="1.0.0" date="2020-10-24">
+            <description>
+                <p>Release 1.0.0</p>
+            </description>
+        </release>
+    </releases>
+</component>

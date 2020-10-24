@@ -42,6 +42,7 @@ async def shell(arg):
     return stdout.decode()
 
 logger = Logger('galacteek')
+loggerI = Logger('galacteek.runner')
 
 
 class ColorizedHandler(ColorizedStderrHandler):
@@ -72,11 +73,15 @@ class GalacteekProcessProtocol(asyncio.SubprocessProtocol):
         for line in msg.split('\n'):
             if self.ioCallback:
                 self.ioCallback(line)
-            print(f'G: {line}')
+
+            if self.process:
+                loggerI.debug(f'G/{self.process.pid}: {line}')
+            else:
+                loggerI.debug(f'G/unknown: {line}')
 
     def process_exited(self):
         if self.process:
-            print('DEL', self.process)
+            loggerI.debug(f'G/{self.process.pid}: purging process')
             del self.process
 
 
@@ -132,7 +137,8 @@ class PIPProtocol(asyncio.SubprocessProtocol):
         for line in msg.split('\n'):
             if self.ioCallback:
                 self.ioCallback(line)
-            print(f'PIP: {line}')
+
+            logger.debug(f'PIP: {line}')
 
     def process_exited(self):
         pass
@@ -163,6 +169,7 @@ class PIPRunner:
     async def pipExec(self, args, env=None, callback=None):
         cmd = [str(Path(self.venvCtx.bin_path).joinpath('pip'))]
         cmd += args
+
         logger.debug(f'pip exec: {cmd}')
 
         proc = await asyncio.create_subprocess_shell(
@@ -211,7 +218,7 @@ class InstallerApplication(QApplication):
         self.lhandler.force_color()
         self.lhandler.push_application()
 
-        logger.debug('Start')
+        logger.debug('Init')
 
         self._loop = None
         self._venv = None
@@ -245,7 +252,7 @@ class InstallerApplication(QApplication):
 
     def initSystemTray(self):
         self.systemTray = QSystemTrayIcon(self)
-        self.systemTray.setIcon(getIcon('installer.png'))
+        self.systemTray.setIcon(getIcon('ginstaller.png'))
         self.systemTray.show()
         self.systemTray.activated.connect(self.onSystemTrayIconClicked)
 
