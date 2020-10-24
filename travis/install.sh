@@ -20,11 +20,11 @@ if [ "$TRAVIS_OS_NAME" = "linux" ]; then
 	wget https://dist.ipfs.io/fs-repo-migrations/v${FS_MIGRATE_VERSION}/fs-repo-migrations_v${FS_MIGRATE_VERSION}_linux-amd64.tar.gz
 	tar -C $HOME -xzvf fs-repo-migrations_v${FS_MIGRATE_VERSION}_linux-amd64.tar.gz
 
-	export DISPLAY=":99.0"
-	/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX +render -noreset
-	sleep 3
-	herbstluftwm &
-	sleep 1
+	# export DISPLAY=":99.0"
+	# /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX +render -noreset
+	# sleep 3
+	# herbstluftwm &
+	# sleep 1
 fi
 
 if [ "$TRAVIS_OS_NAME" = "osx" ]; then

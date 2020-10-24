@@ -13,21 +13,21 @@ else
     TEMP_BASE=/tmp
 fi
 
-BUILD_DIR=$(mktemp -d "$TEMP_BASE/galacteek-MacOS-build-XXXXXX")
+BUILD_DIR=$(mktemp -d "$TEMP_BASE/ginstaller-MacOS-build-XXXXXX")
 
 COMMIT_SHORT=$(echo $TRAVIS_COMMIT|cut -c 1-8)
-G_VERSION=$(grep '__version__' galacteek/__init__.py|sed -e "s/__version__ = '\(.*\)'$/\1/")
+G_VERSION=$(grep '__version__' ginstaller/__init__.py|sed -e "s/__version__ = '\(.*\)'$/\1/")
 
 if [[ $TRAVIS_BRANCH =~ ^v([0-9].[0-9].[0-9]{1,2}) ]] ; then
     echo "Using tag: $TRAVIS_BRANCH"
     EVERSION=${BASH_REMATCH[1]}
-    DMG_DEST="Galacteek-${EVERSION}.dmg"
+    DMG_DEST="Galacteek-Installer-${EVERSION}.dmg"
 else
     if [ "$TRAVIS_BRANCH" != "master" ]; then
         echo "Short commit ID: ${COMMIT_SHORT}"
-        DMG_DEST="Galacteek-${COMMIT_SHORT}.dmg"
+        DMG_DEST="Galacteek-Installer-${COMMIT_SHORT}.dmg"
     else
-        DMG_DEST="Galacteek-${G_VERSION}.dmg"
+        DMG_DEST="Galacteek-Installer-${G_VERSION}.dmg"
     fi
 fi
 
@@ -54,38 +54,38 @@ rm ${MINICONDA_DIST}
 export PATH="$HOME/miniconda/bin:$PATH"
 
 # create conda env
-conda create -n galacteek python=3.7 --yes
-source activate galacteek
+conda create -n ginstaller python=3.7 --yes
+source activate ginstaller
 
 # install dependencies
 pip install wheel
 pip install -r "$OLD_CWD"/requirements.txt
-pip install "$OLD_CWD"/dist/galacteek-${G_VERSION}-py3-none-any.whl
+pip install "$OLD_CWD"/dist/ginstaller-${G_VERSION}-py3-none-any.whl
 
 # leave conda env
 source deactivate
 
 # create .app Framework
-mkdir -p galacteek.app/Contents/
-mkdir galacteek.app/Contents/MacOS galacteek.app/Contents/Resources galacteek.app/Contents/Resources/galacteek
-cp "$OLD_CWD"/travis/Info.plist galacteek.app/Contents/Info.plist
+mkdir -p ginstaller.app/Contents/
+mkdir ginstaller.app/Contents/MacOS ginstaller.app/Contents/Resources ginstaller.app/Contents/Resources/ginstaller
+cp "$OLD_CWD"/travis/Info.plist ginstaller.app/Contents/Info.plist
 
 # copy Miniconda env
-cp -R ~/miniconda/envs/galacteek/* galacteek.app/Contents/Resources/
+cp -R ~/miniconda/envs/ginstaller/* ginstaller.app/Contents/Resources/
 
 # copy icons
-mkdir -p galacteek.app/Contents/Resources/share/icons
-cp "$OLD_CWD"/share/icons/galacteek.icns galacteek.app/Contents/Resources/share/icons
+mkdir -p ginstaller.app/Contents/Resources/share/icons
+cp "$OLD_CWD"/share/icons/ginstaller.icns ginstaller.app/Contents/Resources/share/icons
 
 # copy go-ipfs
-mkdir -p galacteek.app/Contents/Resources/bin
-cp $HOME/bin/ipfs galacteek.app/Contents/Resources/bin
-cp $HOME/bin/fs-repo-migrations galacteek.app/Contents/Resources/bin
+mkdir -p ginstaller.app/Contents/Resources/bin
+cp $HOME/bin/ipfs ginstaller.app/Contents/Resources/bin
+cp $HOME/bin/fs-repo-migrations ginstaller.app/Contents/Resources/bin
 
 # Install libmagic and the magic db files
 brew install libmagic
-cp -av /usr/local/Cellar/libmagic/*/lib/*.dylib galacteek.app/Contents/Resources/lib
-cp -av /usr/local/Cellar/libmagic/*/share/misc galacteek.app/Contents/Resources/share/
+cp -av /usr/local/Cellar/libmagic/*/lib/*.dylib ginstaller.app/Contents/Resources/lib
+cp -av /usr/local/Cellar/libmagic/*/share/misc ginstaller.app/Contents/Resources/share/
 
 brew update
 
@@ -93,24 +93,24 @@ brew unlink python@2
 
 # zbar install. Copy depencies (libjpeg)
 brew install zbar
-cp -av /usr/local/Cellar/zbar/*/lib/*.dylib galacteek.app/Contents/Resources/lib
-cp -av /usr/local/Cellar/jpeg/*/lib/*.dylib galacteek.app/Contents/Resources/lib
-cp -av /usr/local/Cellar/libpng/*/lib/*.dylib galacteek.app/Contents/Resources/lib
+cp -av /usr/local/Cellar/zbar/*/lib/*.dylib ginstaller.app/Contents/Resources/lib
+cp -av /usr/local/Cellar/jpeg/*/lib/*.dylib ginstaller.app/Contents/Resources/lib
+cp -av /usr/local/Cellar/libpng/*/lib/*.dylib ginstaller.app/Contents/Resources/lib
 
-# create entry script for galacteek
-cat > galacteek.app/Contents/MacOS/galacteek <<\EAT
+# create entry script for ginstaller
+cat > ginstaller.app/Contents/MacOS/ginstaller <<\EAT
 #!/usr/bin/env bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export GALACTEEK_MAGIC_DBPATH="$DIR/../Resources/share/misc/magic.mgc"
 export DYLD_FALLBACK_LIBRARY_PATH=$DYLD_FALLBACK_LIBRARY_PATH:$DIR/../Resources/lib
 export PATH=$PATH:$DIR/../Resources/bin
-$DIR/../Resources/bin/python $DIR/../Resources/bin/galacteek -d --from-dmg --no-ssl-verify
+$DIR/../Resources/bin/python $DIR/../Resources/bin/ginstaller -d --from-dmg --no-ssl-verify
 EAT
 
-chmod a+x galacteek.app/Contents/MacOS/galacteek
+chmod a+x ginstaller.app/Contents/MacOS/ginstaller
 
 # bloat deletion sequence
-pushd galacteek.app/Contents/Resources
+pushd ginstaller.app/Contents/Resources
 rm -rf pkgs
 find . -type d -iname '__pycache__' -print0 | xargs -0 rm -r
 rm -rf lib/python3.7/site-packages/Cryptodome/SelfTest/*
@@ -127,6 +127,6 @@ popd
 git clone https://github.com/andreyvit/create-dmg $HOME/create-dmg
 
 # generate .dmg
-$HOME/create-dmg/create-dmg --hdiutil-verbose --volname "galacteek-${G_VERSION}" \
-    --volicon "${OLD_CWD}"/share/icons/galacteek.icns \
-    --hide-extension galacteek.app $DMG_DEST "$BUILD_DIR"/
+$HOME/create-dmg/create-dmg --hdiutil-verbose --volname "Galacteek-Installer-${G_VERSION}" \
+    --volicon "${OLD_CWD}"/share/icons/ginstaller.icns \
+    --hide-extension ginstaller.app $DMG_DEST "$BUILD_DIR"/

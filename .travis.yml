@@ -1,0 +1,24 @@
+sudo: required
+dist: xenial
+language: generic
+
+os:
+  - linux
+  - osx
+
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then bash -xe travis/bootstrap-ubuntu.sh; fi
+
+install:
+  - bash -xe travis/install.sh
+
+script:
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then bash -xe travis/build-dmg.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cd travis; bash -xe ginstaller-appimage-build; cd ..; fi
+
+after_success:
+  - bash travis/upload-images.sh
+
+branches:
+  except:
+    - /^(?i:continuous)$/
