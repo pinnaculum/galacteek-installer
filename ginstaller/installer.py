@@ -90,17 +90,43 @@ class GalacteekEnvBuilder(venv.EnvBuilder):
         self.setUp(context)
 
     def setUp(self, context):
-        os.environ['VIRTUAL_ENV'] = context.env_dir
-
         self.envDir = Path(context.env_dir)
         self.binDir = Path(context.bin_path)
         self.context = context
 
+    def environ2(self):
+        env = os.environ.copy()
+        venvDir = str(self.envDir)
+
+        libpath = os.path.join(
+            venvDir, 'lib',
+            'python%d.%d' % sys.version_info[:2],
+            'site-packages')
+
+        env['VIRTUAL_ENV'] = venvDir
+
+        env['PATH'] = f'{venvDir}/bin:/bin:/usr/bin:/sbin'
+        env['PYTHONPATH'] = libpath
+        return env
+
+    def environ(self):
+        env = os.environ.copy()
+        vinfo = sys.version_info[:2]
+        home = os.getenv('HOME')
+        env['PATH'] = f'{home}/.local/bin:/bin:/usr/bin:/sbin'
+        env['PYTHONPATH'] = \
+            '{home}/.local/lib/python{v1}.{v2}/site-packages/'.format(
+                home=home,
+                v1=vinfo[0],
+                v2=vinfo[1]
+        )
+        logger.debug(f'Environ is: {env}')
+        return env
+
     async def runGalacteek(self, args=[]):
         loop = asyncio.get_event_loop()
 
-        cmd = [self.context.env_exe, str(self.binDir.joinpath('galacteek'))]
-        cmd += args
+        cmd = ['galacteek'] + args
 
         logger.debug(f'Running galacteek process using command: '
                      f'{cmd}')
@@ -110,6 +136,7 @@ class GalacteekEnvBuilder(venv.EnvBuilder):
         proc = loop.subprocess_exec(
             lambda: gProtocol,
             *cmd,
+            env=self.environ(),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -164,17 +191,15 @@ async def pipExecOld(loop, venvCtx, args, env=None, callback=None):
 
 class PIPRunner:
     def __init__(self, venv):
-        self.venvCtx = venv
+        self.venv = venv
 
-    async def pipExec(self, args, env=None, callback=None):
-        cmd = [str(Path(self.venvCtx.bin_path).joinpath('pip'))]
-        cmd += args
-
+    async def pipExec(self, args, env=None, callback=None, systemPip=False):
+        cmd = ['pip'] + args
         logger.debug(f'pip exec: {cmd}')
 
         proc = await asyncio.create_subprocess_shell(
             ' '.join(cmd),
-            env=env,
+            env=env if env else self.venv.environ(),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -182,13 +207,15 @@ class PIPRunner:
         while True:
             line = await proc.stdout.readline()
             if line:
+                logger.debug(f'pip exec: {cmd}: {line}')
                 yield 0, line.decode()
             else:
                 break
 
         await proc.wait()
         if proc.returncode != 0:
-            line = await proc.stderr.readline()
+            err = await proc.stderr.read()
+            logger.debug(f'pip ERR: {err}')
             raise Exception('Pip failed')
 
     async def pipPackageVersion(self, package, env=None):
@@ -204,8 +231,16 @@ class PIPRunner:
     async def pipInstallWheel(self, wheel, env=None):
         try:
             async for fd, line in self.pipExec(
-                    ['install', wheel]):
+                    ['install', '--user', wheel]):
                 yield line
+        except Exception as e:
+            logger.debug(str(e))
+
+    async def pipInstall(self, pkg, env=None, systemPip=True):
+        try:
+            async for fd, line in self.pipExec(
+                    ['install', '--user', pkg]):
+                print(line)
         except Exception as e:
             logger.debug(str(e))
 
@@ -229,7 +264,7 @@ class InstallerApplication(QApplication):
 
         self.initSystemTray()
         self._venv = self.venvBuilder()
-        self._pipRunner = PIPRunner(self.venv.context)
+        self._pipRunner = PIPRunner(self.venv)
         self.setupLoop()
 
         asyncio.ensure_future(self.installerLoop())

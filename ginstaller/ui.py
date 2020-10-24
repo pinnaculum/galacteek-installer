@@ -83,7 +83,7 @@ class CountDownDialog(QDialog):
 # class DefaultProgressDialog(QWidget):
 class DefaultProgressDialog(QDialog):
     def __init__(self, parent=None):
-        super().__init__(parent, Qt.Popup | Qt.WindowStaysOnTopHint)
+        super().__init__(parent, Qt.Dialog | Qt.WindowStaysOnTopHint)
 
         dGeometry = QDesktopWidget().screenGeometry()
         self.vl = QVBoxLayout(self)
