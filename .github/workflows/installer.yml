@@ -22,6 +22,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
+      with:
         repository: pinnaculum/galacteek
 
     - name: Checkout notbit
