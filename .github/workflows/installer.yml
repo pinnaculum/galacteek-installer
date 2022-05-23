@@ -21,11 +21,17 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+    - name: Git branch name
+      id: git-branch-name
+      uses: EthanSK/git-branch-name-action@v1
+
+    - uses: actions/checkout@v3
+      with:
         repository: pinnaculum/galacteek
+        ref: ${{ env.GIT_BRANCH_NAME }}
 
     - name: Checkout notbit
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: pinnaculum/notbit
         path: notbit
@@ -305,7 +311,15 @@ jobs:
       TAGNAME: continuous-newci
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Git branch name
+        id: git-branch-name
+        uses: EthanSK/git-branch-name-action@v1
+
+      - uses: actions/checkout@v3
+        with:
+          repository: pinnaculum/galacteek
+          ref: ${{ env.GIT_BRANCH_NAME }}
+
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
@@ -332,15 +346,14 @@ jobs:
 
       - name: Remove previous release
         run: |
-          curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ github.token }}" -XDELETE https://api.github.com/repos/pinnaculum/galacteek/git/refs/tags/${{ env.TAGNAME }}
-          curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ github.token }}" -XDELETE https://api.github.com/repos/pinnaculum/galacteek/releases/${{ env.TAGNAME }}
-          curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ github.token }}" -XDELETE https://api.github.com/repos/pinnaculum/galacteek/releases/tag/${{ env.TAGNAME }}
+          curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ github.token }}" -XDELETE https://api.github.com/repos/pinnaculum/galacteek-installer/git/refs/tags/${{ env.TAGNAME }}
+          curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ github.token }}" -XDELETE https://api.github.com/repos/pinnaculum/galacteek-installer/releases/${{ env.TAGNAME }}
+          curl -H "Accept: application/vnd.github.v3+json" -H "Authorization: token ${{ github.token }}" -XDELETE https://api.github.com/repos/pinnaculum/galacteek-installer/releases/tag/${{ env.TAGNAME }}
 
       - name: Get Changelog Entry
         id: changelog
         uses: mindsers/changelog-reader-action@v2
         with:
-          validation_depth: 10
           version: ${{ env.G_VERSION }}
           path: ./CHANGELOG.md
 
