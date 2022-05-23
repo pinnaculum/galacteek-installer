@@ -1,2 +1,3 @@
-include:
-  remote: 'https://gitlab.com/galacteek/galacteek/-/raw/${CI_COMMIT_BRANCH}/.gitlab/ci/build-installer.yml'
+include: '.gitlab/templates/build-installer.yml'
+# include:
+#   remote: 'https://gitlab.com/galacteek/galacteek/-/raw/${CI_COMMIT_BRANCH}/.gitlab/ci/build-installer.yml'

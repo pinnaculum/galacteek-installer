@@ -362,7 +362,6 @@ jobs:
         uses: actions/create-release@v1
 
         with:
-          prerelease: true
           tag_name: ${{ env.TAGNAME}}
           release_name: Galacteek ${{ env.G_VERSION }}
           draft: false
