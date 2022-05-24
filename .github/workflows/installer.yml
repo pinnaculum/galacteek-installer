@@ -17,7 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        # os: [macos-latest, windows-latest]
+        os: [windows-latest]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -243,8 +244,10 @@ jobs:
     - name: l (win)
       if: startsWith(matrix.os, 'windows')
       run: |
-        python setup.py build build_docs install
-        python setup.py sdist bdist_wheel
+        # python setup.py build build_docs install
+        # python setup.py sdist bdist_wheel
+
+        pip install "git+https://gitlab.com/galacteek/galacteek-starter"
 
     - name: Tox
       if: startsWith(matrix.os, 'ubuntu')
