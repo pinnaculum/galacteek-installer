@@ -237,6 +237,8 @@ jobs:
         pip install -r requirements.txt
         pip install -e '.[ui-pyqt-5.15]'
 
+        pip install "git+https://gitlab.com/galacteek/galacteek-starter"
+
         # bsddb3 wheel
         wget https://ipfs.io/ipfs/bafybeibwig6rg7524d7aopuu74v4gnevqno5gxq4srevtotme2dtdcixzq/bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
         pip install bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
@@ -246,8 +248,8 @@ jobs:
       run: |
         # python setup.py build build_docs install
         # python setup.py sdist bdist_wheel
-
-        pip install "git+https://gitlab.com/galacteek/galacteek-starter"
+        # pip install "git+https://gitlab.com/galacteek/galacteek-starter"
+        echo "Not needed now"
 
     - name: Tox
       if: startsWith(matrix.os, 'ubuntu')
