@@ -125,7 +125,6 @@ jobs:
 
         # Set PKG_CONFIG_PATH to point to brew's openssl libcrypto, for notbit
         # compilation
-        ls /usr/local/Cellar/openssl@1.1
 
         echo "PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1o/lib/pkgconfig:/usr/local/Cellar/openssl/1.1.1o/lib/pkgconfig" >> $GITHUB_ENV
 
@@ -164,13 +163,6 @@ jobs:
 
       shell: bash
 
-    - name: Fetch libmagic database (windows)
-      if: startsWith(matrix.os, 'windows')
-      run: |
-        wget https://github.com/nscaife/file-windows/releases/download/20170108/file-windows-20170108.zip
-        # unzip file-windows-20170108.zip "magic.mgc"
-      shell: bash
-
     - name: Fetch VC redist (windows)
       if: startsWith(matrix.os, 'windows')
       run: |
@@ -195,8 +187,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
-        #pip install -r requirements-dev.txt
-        #pip install -r requirements.txt
 
     - name: Create virtual environment
       if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
@@ -240,18 +230,11 @@ jobs:
         wget https://ipfs.io/ipfs/bafybeibwig6rg7524d7aopuu74v4gnevqno5gxq4srevtotme2dtdcixzq/bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
         pip install bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
 
-    - name: l (win)
+    - name: Build docs and wheel (win)
       if: startsWith(matrix.os, 'windows')
       run: |
         python setup.py build build_docs install
         python setup.py sdist bdist_wheel
-
-    - name: Tox
-      if: startsWith(matrix.os, 'ubuntu')
-      run: |
-        # Run tox just in the linux environment
-        # tox -e py37
-        echo "Disabled for now (need to fix pytest-qt use in GA)"
 
     - name: Build AppImage
       if: startsWith(matrix.os, 'ubuntu')
@@ -366,24 +349,15 @@ jobs:
           release_name: Galacteek ${{ env.G_VERSION }}
           draft: false
           body: |
-            # Galacteek ${{ env.G_VERSION }} **prerelease**
+            # Galacteek ${{ env.G_VERSION }}
 
             ## Release log
 
             ${{ steps.changelog.outputs.changes }}
 
-            # Using the AppImage
+            # Usage
 
-            After downloading the AppImage, make it executable and then run it:
-
-            > chmod +x Galacteek-${{ env.G_VERSION }}-x86_64.AppImage
-            ./Galacteek-${{ env.G_VERSION }}-x86_64.AppImage
-
-            The AppImage does **not** bundle libstdc++. If you use a Linux system with an old libstdc++ and cannot run the AppImage, please open an issue.
-
-            Be sure to install all the **gstreamer** packages to be able to use the mediaplayer.
-
-            Trouble with running the AppImage ? [Check the wiki](https://github.com/pinnaculum/galacteek/wiki/AppImage#troubleshooting) or [file an issue](https://github.com/pinnaculum/galacteek/issues/new?assignees=&labels=appimage&template=appimage-issue.md&title=Cannot+run+the+AppImage)
+            Checkout [this page](https://galacteek.gitlab.io/download/#running)
 
             # Using the DMG image
 
