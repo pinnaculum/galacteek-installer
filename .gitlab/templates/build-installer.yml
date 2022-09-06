@@ -8,9 +8,8 @@ variables:
   ASSETS_ROOT: "${CI_PROJECT_DIR}/assets"
   IPFS_BINPATH: "${CI_PROJECT_DIR}/ipfs-bin"
 
-  GALACTEEK_VERSION: 0.5.5
-  GO_IPFS_VERSION: 0.9.1
-  FS_MIGRATE_VERSION: 2.0.1
+  KUBO_VERSION: 0.15.0
+  FS_MIGRATE_VERSION: 2.0.2
   IPFS_DIST_OS: linux
 
   APPIMAGE_X64_BRANCH_LATEST: 'Galacteek-${CI_COMMIT_BRANCH}-latest-x86_64.AppImage'
@@ -62,6 +61,7 @@ prepare:
     - git clone -b ${CI_COMMIT_BRANCH} https://gitlab.com/galacteek/galacteek ${G_PROJECT_DIR}
   script:
     - cd $G_PROJECT_DIR
+    - export GALACTEEK_VERSION=$(cat galacteek/VERSION)
 
     - echo "CI_PROJECT_DIR => ${CI_PROJECT_DIR}"
     - echo "ASSETS_ROOT => ${ASSETS_ROOT}"
@@ -153,6 +153,7 @@ build:
   script:
     - git clone -b ${CI_COMMIT_BRANCH} https://gitlab.com/galacteek/galacteek ${G_PROJECT_DIR}
     - cd $G_PROJECT_DIR
+    - export GALACTEEK_VERSION=$(cat galacteek/VERSION)
 
     - source $GALACTEEK_ENV_FILE
     - mkdir -p $ASSETS_ROOT
@@ -296,6 +297,7 @@ release:
     - cd ${G_PROJECT_DIR}
     - source $GALACTEEK_ENV_FILE
     - source $ARTIFACT_RELEASE
+    - export GALACTEEK_VERSION=$(cat galacteek/VERSION)
 
     # Upload the artifact
     - >

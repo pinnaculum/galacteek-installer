@@ -7,8 +7,8 @@ on:
     branches: [ master ]
 
 env:
-  GO_IPFS_VERSION: 0.9.1
-  FS_MIGRATE_VERSION: 2.0.1
+  KUBO_VERSION: 0.15.0
+  FS_MIGRATE_VERSION: 2.0.2
 
 jobs:
   build:
@@ -126,7 +126,7 @@ jobs:
         # Set PKG_CONFIG_PATH to point to brew's openssl libcrypto, for notbit
         # compilation
 
-        echo "PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1o/lib/pkgconfig:/usr/local/Cellar/openssl/1.1.1o/lib/pkgconfig" >> $GITHUB_ENV
+        echo "PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1q/lib/pkgconfig:/usr/local/Cellar/openssl/1.1.1q/lib/pkgconfig" >> $GITHUB_ENV
 
     - name: OS-specific vars (win)
       if: startsWith(matrix.os, 'windows')
@@ -140,14 +140,14 @@ jobs:
     - name: Fetch IPFS dists
       if: startsWith(matrix.os, 'ubuntu') || startsWith(matrix.os, 'mac')
       run: |
-        wget https://dist.ipfs.io/go-ipfs/v${GO_IPFS_VERSION}/go-ipfs_v${GO_IPFS_VERSION}_${IPFS_DIST_OS}-amd64.tar.gz
+        wget https://dist.ipfs.tech/kubo/v${KUBO_VERSION}/kubo_v${KUBO_VERSION}_${IPFS_DIST_OS}-amd64.tar.gz
 
-        wget https://dist.ipfs.io/fs-repo-migrations/v${FS_MIGRATE_VERSION}/fs-repo-migrations_v${FS_MIGRATE_VERSION}_${IPFS_DIST_OS}-amd64.tar.gz
+        wget https://dist.ipfs.tech/fs-repo-migrations/v${FS_MIGRATE_VERSION}/fs-repo-migrations_v${FS_MIGRATE_VERSION}_${IPFS_DIST_OS}-amd64.tar.gz
 
-        tar -C $GITHUB_WORKSPACE -xzvf go-ipfs_v${GO_IPFS_VERSION}_${IPFS_DIST_OS}-amd64.tar.gz
-        echo "${GITHUB_WORKSPACE}/go-ipfs" >> $GITHUB_PATH
+        tar -C $GITHUB_WORKSPACE -xzvf kubo_v${KUBO_VERSION}_${IPFS_DIST_OS}-amd64.tar.gz
+        echo "${GITHUB_WORKSPACE}/kubo" >> $GITHUB_PATH
 
-        mv go-ipfs/ipfs go-ipfs/ipfs-${GO_IPFS_VERSION}
+        mv kubo/ipfs kubo/ipfs-${KUBO_VERSION}
 
         tar -C $GITHUB_WORKSPACE -xzvf fs-repo-migrations_v${FS_MIGRATE_VERSION}_${IPFS_DIST_OS}-amd64.tar.gz
         echo "${GITHUB_WORKSPACE}/fs-repo-migrations" >> $GITHUB_PATH
@@ -155,10 +155,10 @@ jobs:
     - name: Fetch IPFS dists (windows)
       if: startsWith(matrix.os, 'windows')
       run: |
-        wget "https://dist.ipfs.io/go-ipfs/v${GO_IPFS_VERSION}/go-ipfs_v${GO_IPFS_VERSION}_${IPFS_DIST_OS}-amd64.zip"
-        wget "https://dist.ipfs.io/fs-repo-migrations/v${FS_MIGRATE_VERSION}/fs-repo-migrations_v${FS_MIGRATE_VERSION}_${IPFS_DIST_OS}-amd64.zip"
+        wget "https://dist.ipfs.tech/kubo/v${KUBO_VERSION}/kubo_v${KUBO_VERSION}_${IPFS_DIST_OS}-amd64.zip"
+        wget "https://dist.ipfs.tech/fs-repo-migrations/v${FS_MIGRATE_VERSION}/fs-repo-migrations_v${FS_MIGRATE_VERSION}_${IPFS_DIST_OS}-amd64.zip"
 
-        unzip go-ipfs_v${GO_IPFS_VERSION}_${IPFS_DIST_OS}-amd64.zip
+        unzip kubo_v${KUBO_VERSION}_${IPFS_DIST_OS}-amd64.zip
         unzip fs-repo-migrations_v${FS_MIGRATE_VERSION}_${IPFS_DIST_OS}-amd64.zip
 
       shell: bash
