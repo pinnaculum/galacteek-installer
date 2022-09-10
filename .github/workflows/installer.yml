@@ -207,7 +207,7 @@ jobs:
         pip install wheel
         pip install -r requirements-dev.txt
         pip install -r requirements.txt
-        pip install -e '.[ui-pyqt-5.15]'
+        pip install -e '.[ld-schemas,ui-pyqt-5.15]'
 
         # Build UI and docs, install and build sdist and bwheel
         python setup.py build build_docs install
@@ -224,7 +224,7 @@ jobs:
         pip install wheel
         pip install "sphinx==1.8.5"
         pip install -r requirements.txt
-        pip install -e '.[ui-pyqt-5.15]'
+        pip install -e '.[ld-schemas,ui-pyqt-5.15]'
 
         # bsddb3 wheel
         wget https://ipfs.io/ipfs/bafybeibwig6rg7524d7aopuu74v4gnevqno5gxq4srevtotme2dtdcixzq/bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
