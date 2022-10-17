@@ -12,6 +12,9 @@ env:
 
 jobs:
   build:
+    env:
+      GIT_CHECKOUT_REF: ${{ github.head_ref || github.ref_name }}
+
     needs: create_release
     timeout-minutes: 90
     strategy:
@@ -21,14 +24,10 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     steps:
-    - name: Git branch name
-      id: git-branch-name
-      uses: EthanSK/git-branch-name-action@v1
-
     - uses: actions/checkout@v3
       with:
         repository: pinnaculum/galacteek
-        ref: ${{ env.GIT_BRANCH_NAME }}
+        ref: ${{ env.GIT_CHECKOUT_REF }}
 
     - name: Checkout notbit
       uses: actions/checkout@v3
@@ -36,14 +35,17 @@ jobs:
         repository: pinnaculum/notbit
         path: notbit
 
-    - name: Checkout galacteek-ld-web4
-      run: |
-        git clone https://gitlab.com/galacteek/galacteek-ld-web4
-
     - name: Set up Python 3.7
       uses: actions/setup-python@v2
       with:
         python-version: 3.7
+
+    - name: Checkout and build galacteek-ld-web4
+      run: |
+        git clone https://gitlab.com/galacteek/galacteek-ld-web4
+        cd galacteek-ld-web4
+        pip install '.'
+        python setup.py build
 
     - name: Install packages
       if: startsWith(matrix.os, 'ubuntu')
@@ -207,7 +209,7 @@ jobs:
         pip install wheel
         pip install -r requirements-dev.txt
         pip install -r requirements.txt
-        pip install -e '.[ld-schemas,ui-pyqt-5.15]'
+        pip install '.[ld-schemas,ui-pyqt-5.15]'
 
         # Build UI and docs, install and build sdist and bwheel
         python setup.py build build_docs install
@@ -224,10 +226,10 @@ jobs:
         pip install wheel
         pip install "sphinx==1.8.5"
         pip install -r requirements.txt
-        pip install -e '.[ld-schemas,ui-pyqt-5.15]'
+        pip install '.[ld-schemas,ui-pyqt-5.15]'
 
         # bsddb3 wheel
-        wget https://ipfs.io/ipfs/bafybeibwig6rg7524d7aopuu74v4gnevqno5gxq4srevtotme2dtdcixzq/bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
+        wget https://gateway.pinata.cloud/ipfs/bafybeibwig6rg7524d7aopuu74v4gnevqno5gxq4srevtotme2dtdcixzq/bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
         pip install bsddb3-6.2.9-cp37-cp37m-win_amd64.whl
 
     - name: Build docs and wheel (win)
@@ -292,16 +294,13 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
       TAGNAME: continuous-newci
+      GIT_CHECKOUT_REF: ${{ github.head_ref || github.ref_name }}
 
     steps:
-      - name: Git branch name
-        id: git-branch-name
-        uses: EthanSK/git-branch-name-action@v1
-
       - uses: actions/checkout@v3
         with:
           repository: pinnaculum/galacteek
-          ref: ${{ env.GIT_BRANCH_NAME }}
+          ref: ${{ env.GIT_CHECKOUT_REF }}
 
       - name: Set up Python 3.7
         uses: actions/setup-python@v2
