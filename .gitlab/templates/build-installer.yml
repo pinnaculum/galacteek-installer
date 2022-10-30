@@ -22,7 +22,6 @@ variables:
   RELEASE_DESCRIPTION: "release-description.md"
 
   ARTIFACT_RELEASE: "${CI_PROJECT_DIR}/galacteek-gitlab-release-env.sh"
-  ARTIFACT_RELEASE_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/galacteek-gitlab-release-env.sh"
 
 .clone_script_template:
   before_script:
@@ -32,6 +31,7 @@ variables:
   before_script:
     - ipfs version
     - ipfs init
+    - ipfs config Addresses.Gateway "/ip4/127.0.0.1/tcp/8085"
     - ipfs pin remote service add origin $IPFS_RPS_ENDPOINT $IPFS_RPS_TOKEN
     - nohup ipfs daemon &
     - sleep 5
@@ -77,13 +77,15 @@ prepare:
         echo "export RELEASE_TAG=v${GALACTEEK_VERSION}" >> $GALACTEEK_ENV_FILE
         echo "export APPIMAGE_PIN_NAME=galacteek-appimage-v${GALACTEEK_VERSION}" >> $GALACTEEK_ENV_FILE
         echo "export FLATPAK_PIN_NAME=galacteek-flatpak-v${GALACTEEK_VERSION}" >> $GALACTEEK_ENV_FILE
+        echo "export FLATPAK_BUNDLE_PIN_NAME=galacteek-flatpak-bundle-${BUNDLE_IDENT}" >> $GALACTEEK_ENV_FILE
       else
         echo "Building from branch ${CI_COMMIT_BRANCH}"
         BUNDLE_IDENT="${CI_COMMIT_SHORT_SHA}"
 
         echo "export RELEASE_TAG=continuous-${CI_COMMIT_BRANCH}" >> $GALACTEEK_ENV_FILE
-        echo "export APPIMAGE_PIN_NAME=galacteek-appimage-branch-${CI_COMMIT_BRANCH}" >> $GALACTEEK_ENV_FILE
-        echo "export FLATPAK_PIN_NAME=galacteek-flatpak-branch-${CI_COMMIT_BRANCH}" >> $GALACTEEK_ENV_FILE
+        echo "export APPIMAGE_PIN_NAME=galacteek-appimage-branch-${BUNDLE_IDENT}" >> $GALACTEEK_ENV_FILE
+        echo "export FLATPAK_PIN_NAME=galacteek-flatpak-branch-${BUNDLE_IDENT}" >> $GALACTEEK_ENV_FILE
+        echo "export FLATPAK_BUNDLE_PIN_NAME=galacteek-flatpak-bundle-${BUNDLE_IDENT}" >> $GALACTEEK_ENV_FILE
       fi
 
       WHEEL_FILENAME="galacteek-${GALACTEEK_VERSION}-py3-none-any.whl"
@@ -118,6 +120,8 @@ prepare:
 
       # wheel dist (yaml)
       echo "export DISTMAP_ASSET_URL=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${GALACTEEK_VERSION}/dist-wheel.yaml" >> $GALACTEEK_ENV_FILE
+
+      echo "export ARTIFACT_RELEASE_URL=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${GALACTEEK_VERSION}/galacteek-gitlab-release-env.sh" >> $GALACTEEK_ENV_FILE
 
     - export
 
@@ -235,6 +239,11 @@ build:
         CID=$(ipfs add -wQ --cid-version 1 "$FLATPAK_PATH" | tail -1)
         echo "export FLATPAK_DIR_CID=$CID" >> $ARTIFACT_RELEASE
 
+        ipfs pin remote rm --service=origin \
+          --name="${FLATPAK_BUNDLE_PIN_NAME}" --force
+        ipfs pin remote add --service=origin \
+          --name="${FLATPAK_BUNDLE_PIN_NAME}" $CID
+
         echo "Uploading flatpak ${FLATPAK_PATH}"
         curl --progress-bar --header "JOB-TOKEN: $CI_JOB_TOKEN" \
           --upload-file ${FLATPAK_PATH} ${FLATPAK_ASSET_URL}
@@ -263,7 +272,7 @@ build:
           ipfs pin remote add --service=origin \
             --name="${APPIMAGE_PIN_NAME}" $APPIMAGE_DIR_CID
 
-          echo "export APPIMAGE_IPFS_URL=https://gateway.pinata.cloud/ipfs/${APPIMAGE_DIR_CID}/${APPIMAGE_FILENAME}" >> $ARTIFACT_RELEASE
+          echo "export APPIMAGE_IPFS_URL=https://galacteek.mypinata.cloud/ipfs/${APPIMAGE_DIR_CID}/${APPIMAGE_FILENAME}" >> $ARTIFACT_RELEASE
         fi
       fi
 
@@ -301,7 +310,8 @@ release:
 
     # Upload the artifact
     - >
-      curl --header "JOB-TOKEN: $CI_JOB_TOKEN"
+      curl
+      --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --upload-file
       ${ARTIFACT_RELEASE}
       ${ARTIFACT_RELEASE_URL}
@@ -325,56 +335,46 @@ release:
         # Use a permanent 'latest' filepath for the appimage release asset
         echo "Using release filepath: ${APPIMAGE_X64_BRANCH_LATEST}"
         export APPIMAGE_FILEPATH=${APPIMAGE_X64_BRANCH_LATEST}
+        export FLATPAK_FILEPATH=${FLATPAK_X64_BRANCH_LATEST}
         export DMG_FILEPATH=${DMG_X64_BRANCH_LATEST}
         export NSI_FILEPATH=${NSI_X64_BRANCH_LATEST}
       else
         export APPIMAGE_FILEPATH=${APPIMAGE_FILENAME}
+        export FLATPAK_FILEPATH=${FLATPAK_FILENAME}
         export DMG_FILEPATH=${DMG_FILENAME}
         export NSI_FILEPATH=${NSI_FILENAME}
       fi
+
+      export FLATPAK_BUNDLE_URL="https://galacteek.mypinata.cloud/ipfs/${FLATPAK_DIR_CID}/${FLATPAK_FILENAME}"
 
       echo "APPIMAGE_FILEPATH: $APPIMAGE_FILEPATH"
 
     # Create release
     - |-
-      if [[ "$CI_COMMIT_MESSAGE" =~ '[pin]' ]] && [ ! -z "${APPIMAGE_IPFS_URL}" ]; then
-        echo "Creating release with IPFS url"
-        release-cli create \
-          --name "Galacteek v$G_VERSION" \
-          --description $RELEASE_DESCRIPTION \
-          --tag-name $RELEASE_TAG \
-          --ref $CI_COMMIT_SHA \
-          --assets-link \
-          "{\"name\" :\"$APPIMAGE_IPFS_FILENAME\", \"filepath\": \"/${APPIMAGE_IPFS_FILENAME}\", \"url\": \"${APPIMAGE_IPFS_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${APPIMAGE_FILENAME}\", \"filepath\": \"/${APPIMAGE_FILENAME}\", \"url\": \"${APPIMAGE_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${APPIMAGE_SHA_FILENAME}\", \"filepath\": \"/${APPIMAGE_SHA_FILENAME}\", \"url\": \"${APPIMAGE_SHA_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${DMG_FILENAME}\", \"filepath\": \"/${DMG_FILEPATH}\", \"url\": \"${DMG_ASSET_URL}\"}"
-
-      else
-        echo "Creating release with artifact url"
-        release-cli create \
-          --name "Galacteek v$G_VERSION" \
-          --description $RELEASE_DESCRIPTION \
-          --tag-name $RELEASE_TAG \
-          --ref $CI_COMMIT_SHA \
-          --assets-link \
-          "{\"name\" :\"${WHEEL_FILENAME}\", \"filepath\": \"/galacteek-latest-py3-none-any.whl\", \"url\": \"${WHEEL_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"dist-wheel.yaml\", \"filepath\": \"/dist-wheel.yaml\", \"url\": \"${DISTMAP_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${APPIMAGE_FILENAME}\", \"filepath\": \"/${APPIMAGE_FILEPATH}\", \"url\": \"${APPIMAGE_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${APPIMAGE_SHA_FILENAME}\", \"filepath\": \"/${APPIMAGE_SHA_FILENAME}\", \"url\": \"${APPIMAGE_SHA_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${DMG_FILENAME}\", \"filepath\": \"/${DMG_FILEPATH}\", \"url\": \"${DMG_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${NSI_FILENAME}\", \"filepath\": \"/${NSI_FILEPATH}\", \"url\": \"${NSI_ASSET_URL}\"}" \
-          --assets-link \
-          "{\"name\" :\"${FLATPAK_REPO_FILENAME}\", \"filepath\": \"/${FLATPAK_REPO_FILENAME}\", \"url\": \"${FLATPAK_REPO_ASSET_URL}\"}"
-      fi
+      echo "Creating release with artifact url"
+      release-cli create \
+        --name "Galacteek v$G_VERSION" \
+        --description $RELEASE_DESCRIPTION \
+        --tag-name $RELEASE_TAG \
+        --ref $CI_COMMIT_SHA \
+        --assets-link \
+        "{\"name\" :\"release.sh\", \"filepath\": \"/release.sh\", \"url\": \"${ARTIFACT_RELEASE_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"${WHEEL_FILENAME}\", \"filepath\": \"/galacteek-latest-py3-none-any.whl\", \"url\": \"${WHEEL_ASSET_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"dist-wheel.yaml\", \"filepath\": \"/dist-wheel.yaml\", \"url\": \"${DISTMAP_ASSET_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"${APPIMAGE_FILENAME}\", \"filepath\": \"/${APPIMAGE_FILEPATH}\", \"url\": \"${APPIMAGE_IPFS_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"${APPIMAGE_SHA_FILENAME}\", \"filepath\": \"/${APPIMAGE_SHA_FILENAME}\", \"url\": \"${APPIMAGE_SHA_ASSET_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"${DMG_FILENAME}\", \"filepath\": \"/${DMG_FILEPATH}\", \"url\": \"${DMG_ASSET_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"${NSI_FILENAME}\", \"filepath\": \"/${NSI_FILEPATH}\", \"url\": \"${NSI_ASSET_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"${FLATPAK_REPO_FILENAME}\", \"filepath\": \"/${FLATPAK_REPO_FILENAME}\", \"url\": \"${FLATPAK_REPO_ASSET_URL}\"}" \
+        --assets-link \
+        "{\"name\" :\"${FLATPAK_FILENAME}\", \"filepath\": \"/${FLATPAK_FILEPATH}\", \"url\": \"${FLATPAK_BUNDLE_URL}\"}"
 
 docker_x11vnc:
   image: docker:latest

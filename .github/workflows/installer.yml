@@ -208,7 +208,7 @@ jobs:
         pip install --upgrade pip
         pip install wheel
         pip install -r requirements-dev.txt
-        pip install -r requirements.txt
+        pip install -r requirements.txt --use-deprecated=legacy-resolver
         pip install '.[ld-schemas,ui-pyqt-5.15]'
 
         # Build UI and docs, install and build sdist and bwheel
@@ -224,8 +224,8 @@ jobs:
         pip install --upgrade pip
 
         pip install wheel
-        pip install "sphinx==1.8.5"
-        pip install -r requirements.txt
+        pip install -r requirements-docs.txt
+        pip install -r requirements.txt --use-deprecated=legacy-resolver
         pip install '.[ld-schemas,ui-pyqt-5.15]'
 
         # bsddb3 wheel
@@ -313,7 +313,8 @@ jobs:
           echo "G_VERSION=$(cat galacteek/VERSION)" >> $GITHUB_ENV
           echo "COMMIT_SHORT=$(echo $GITHUB_SHA|cut -c 1-8)" >> $GITHUB_ENV
           echo "GIT_BRANCH=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "TAGNAME=continuous-${GITHUB_REF##*/}" >> $GITHUB_ENV
+          # echo "TAGNAME=continuous-${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "TAGNAME=$(echo $GITHUB_SHA|cut -c 1-8)" >> $GITHUB_ENV
         shell: bash
 
       - name: Release config (b)
