@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  KUBO_VERSION: 0.15.0
+  KUBO_VERSION: 0.17.0
   FS_MIGRATE_VERSION: 2.0.2
 
 jobs:
@@ -128,7 +128,7 @@ jobs:
         # Set PKG_CONFIG_PATH to point to brew's openssl libcrypto, for notbit
         # compilation
 
-        echo "PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1q/lib/pkgconfig:/usr/local/Cellar/openssl/1.1.1q/lib/pkgconfig" >> $GITHUB_ENV
+        echo "PKG_CONFIG_PATH=/usr/local/Cellar/openssl@1.1/1.1.1s/lib/pkgconfig:/usr/local/Cellar/openssl/1.1.1s/lib/pkgconfig" >> $GITHUB_ENV
 
     - name: OS-specific vars (win)
       if: startsWith(matrix.os, 'windows')
