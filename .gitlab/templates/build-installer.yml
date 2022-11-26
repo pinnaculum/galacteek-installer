@@ -8,7 +8,7 @@ variables:
   ASSETS_ROOT: "${CI_PROJECT_DIR}/assets"
   IPFS_BINPATH: "${CI_PROJECT_DIR}/ipfs-bin"
 
-  KUBO_VERSION: 0.15.0
+  KUBO_VERSION: 0.17.0
   FS_MIGRATE_VERSION: 2.0.2
   IPFS_DIST_OS: linux
 

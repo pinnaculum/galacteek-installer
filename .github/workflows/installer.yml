@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  KUBO_VERSION: 0.15.0
+  KUBO_VERSION: 0.17.0
   FS_MIGRATE_VERSION: 2.0.2
 
 jobs:
