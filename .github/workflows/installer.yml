@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  CI_RELEASE_DATE: 2023-04-01
+  CI_RELEASE_DATE: 2023-04-04
   KUBO_VERSION: 0.17.0
   FS_MIGRATE_VERSION: 2.0.2
 
@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [windows-latest]
 
     runs-on: ${{ matrix.os }}
     steps:
