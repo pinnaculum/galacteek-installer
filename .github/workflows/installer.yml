@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  CI_RELEASE_DATE: 2023-04-05
+  CI_RELEASE_DATE: 2023-04-06
   KUBO_VERSION: 0.17.0
   FS_MIGRATE_VERSION: 2.0.2
 
