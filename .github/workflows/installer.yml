@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  CI_RELEASE_DATE: 2023-04-06
+  CI_RELEASE_DATE: 2023-06-05
   KUBO_VERSION: 0.17.0
   FS_MIGRATE_VERSION: 2.0.2
 
@@ -41,12 +41,9 @@ jobs:
       with:
         python-version: 3.7
 
-    - name: Checkout and build galacteek-ld-web4
+    - name: Install galacteek-ld-web4
       run: |
-        git clone https://gitlab.com/galacteek/galacteek-ld-web4
-        cd galacteek-ld-web4
-        pip install '.'
-        python setup.py build
+        pip install "https://gitlab.com/galacteek/galacteek-ld-web4/-/releases/continuous-master/downloads/galacteek_ld_web4-1.1.5-py3-none-any.whl"
 
     - name: Install packages
       if: startsWith(matrix.os, 'ubuntu')
