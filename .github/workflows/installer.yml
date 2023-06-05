@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 env:
-  CI_RELEASE_DATE: 2023-04-06
+  CI_RELEASE_DATE: 2023-06-05
   KUBO_VERSION: 0.17.0
   FS_MIGRATE_VERSION: 2.0.2
 
@@ -45,6 +45,7 @@ jobs:
       run: |
         git clone https://gitlab.com/galacteek/galacteek-ld-web4
         cd galacteek-ld-web4
+        pip install -r requirements.txt
         pip install '.'
         python setup.py build
 
